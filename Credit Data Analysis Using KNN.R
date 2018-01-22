@@ -1,19 +1,10 @@
----
-title: "Credit_data_analysis_using_KNN"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 setwd('/Users/navneetsonak/Desktop/ClassesSlides/DataMining/R')
 library(dummies)
 library(class)
 library(readxl)
-```
-## Importing Credit data and Preprocessing
-```{r import_data}
 
 
+## Importing Credit data
 credit <- read_excel('credit3.xlsx',sheet=1)
 tail(credit)
 typeof(credit$NPV)
@@ -26,10 +17,7 @@ credit$TYPE <- as.factor(credit$TYPE)
 
 credit <- dummy.data.frame(credit, all=TRUE)
 
-```
 ## Converting NPV to categorical variable
-```{r cat_var}
-
 credit$predict <- NULL
 change <- function(x){
   if (x<0)
@@ -39,9 +27,8 @@ change <- function(x){
 }
 credit$predict <- sapply(credit$NPV, change)
 
-```
+
 ## Removing NPV, Credit Extended and OBS columns as they cannot be used to classify their account performance.
-```{r cat_var1}
 
 credit$NPV <- NULL
 credit$CREDIT_EXTENDED <- NULL
@@ -57,18 +44,15 @@ head(credit_train)
 
 
 
-```
 ## Applying KNN for various values of k and checking error percentage for each k.
-```{r KNN}
+sapply(credit,class)
 fun <- function(x){ 
   a <- mean(x) 
   b <- sd(x) 
   (x - a)/(b) 
 } 
-
-
-credit_train[,1] <- as.data.frame(fun(credit_train[,1]))
-credit_test[,1] <- as.data.frame(fun(credit_test[,1]))
+credit_train[,c(1,3,15)] <- as.data.frame(scale(credit_train[,c(1,3,15)]))
+credit_test[,c(1,3,15)] <- as.data.frame(scale(credit_test[,c(1,3,15)]))
 
 df <- credit_train$predict
 credit_train$predict <-NULL
@@ -93,9 +77,8 @@ for (i in 1:kmax){
   ER2[i] <- (CM2[1,2]+CM2[2,1])/sum(CM2)
 }
 ER2
-```
 ## Plotting error rate vs k. 
-```{r plot}
+
 plot(c(1,kmax),c(0,0.5),type="n", xlab="k",ylab="Error Rate")
 lines(ER1,col="red")
 lines(ER2,col="blue")
@@ -103,9 +86,7 @@ legend(9, 0.1, c("Training","Validation"),lty=c(1,1), col=c("red","blue"))
 z <- which.min(ER2)
 cat("Minimum Validation Error k:", z)
 
-```
-## Using the Mininum error k to make predictions.
-```{r pred}
+## using the Mininum error k to make predictions.
 pred <- knn(train_input, train_input,train_output, k=z)
 pred2 <- knn(train_input, test_input,train_output, k=z)
 CM <- table(df1, pred2)
@@ -113,6 +94,3 @@ error_class1 <- (CM[2,1])/sum(CM[2,1]+CM[2,2])
 error_class1
 error_class0 <- (CM[1,2])/sum(CM[1,1]+CM[1,2])
 error_class0
-
-
-```
